@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="RuffConfigService">
+    <option name="globalRuffExecutablePath" value="C:\Users\lasse\scoop\apps\python312\current\Scripts\ruff.exe" />
+    <option name="globalRuffLspExecutablePath" value="C:\Users\lasse\scoop\apps\python312\current\Scripts\ruff-lsp.exe" />
+    <option name="useRuffFormat" value="true" />
+    <option name="useRuffLsp" value="true" />
+  </component>
+</project>
