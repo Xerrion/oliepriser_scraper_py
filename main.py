@@ -8,6 +8,12 @@ from scraper import Scraper
 
 
 async def main():
+    """
+    Main entry point for the scraping script.
+
+    This function loads environment variables, creates a Scraper instance,
+    and starts a loop that runs the scraper every hour.
+    """
     # Load environment variables from .env file
     load_dotenv()
 
@@ -23,8 +29,8 @@ async def main():
     while True:
         print("Starting scraping run")
         await scraper.run()  # Run the scraper
-        print("Scrape finished, sleeping for 60 seconds")
-        await asyncio.sleep(60)  # Sleep for 60 seconds before the next run
+        print("Scrape finished, sleeping for 1 hour")
+        await asyncio.sleep(3600)  # Sleep for 1 hour before the next run
 
 
 # Entry point for the script

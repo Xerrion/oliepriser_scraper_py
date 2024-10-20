@@ -1,4 +1,4 @@
-name: Python Scraper CI/CD
+name: Python Oile Priser Scraper CI/CD
 
 on:
   push:
@@ -14,61 +14,77 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v2
+      - name: Checkout code
+        uses: actions/checkout@v2
 
-    - name: Set up Python
-      uses: actions/setup-python@v2
-      with:
-        python-version: '3.10'
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.10'
 
-    - name: Install dependencies
-      run: |
-        python -m venv venv
-        source venv/bin/activate
-        pip install -r requirements.txt
+      - name: Install dependencies
+        run: |
+          python -m venv venv
+          source venv/bin/activate
+          pip install -r requirements.txt
 
-    - name: Run tests
-      run: |
-        source venv/bin/activate
-        pytest
+      - name: Run tests
+        run: |
+          source venv/bin/activate
+          pytest
 
   # Build Docker image job
   build:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v2
+      - name: Checkout code
+        uses: actions/checkout@v2
 
-    - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v2
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
 
-    - name: Login to Docker Hub
-      uses: docker/login-action@v2
-      with:
-        username: ${{ secrets.DOCKER_USERNAME }}
-        password: ${{ secrets.DOCKER_PASSWORD }}
+      - name: Login to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
 
-    - name: Build and push Docker image
-      run: |
-        docker build -t ${{ secrets.DOCKER_USERNAME }}/scraper-app:latest .
-        docker push ${{ secrets.DOCKER_USERNAME }}/scraper-app:latest
+      - name: Build and push Docker image
+        run: |
+          docker build -t ${{ secrets.DOCKER_USERNAME }}/scraper-app:latest .
+          docker push ${{ secrets.DOCKER_USERNAME }}/scraper-app:latest
 
-  # Deploy job
+  # Deploy job with terraform on AWS
   deploy:
     runs-on: ubuntu-latest
-    needs: build
+
     steps:
-    - name: SSH into the server and deploy
-      uses: appleboy/ssh-action@v0.1.3
-      with:
-        host: ${{ secrets.SERVER_IP }}
-        username: ${{ secrets.SSH_USERNAME }}
-        key: ${{ secrets.SSH_PRIVATE_KEY }}
-        port: 22
-        script: |
-          docker pull ${{ secrets.DOCKER_USERNAME }}/scraper-app:latest
-          docker stop scraper-app || true
-          docker rm scraper-app || true
-          docker run -d --name scraper-app -p 8000:8000 ${{ secrets.DOCKER_USERNAME }}/scraper-app:latest
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      # Set up AWS credentials for Terraform deployment
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      # Set up Terraform
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.1.7
+
+      # Terraform Init
+      - name: Terraform Init
+        run: terraform init
+
+      # Terraform Plan
+      - name: Terraform Plan
+        run: terraform plan
+
+      # Terraform Apply
+      - name: Terraform Apply
+        run: terraform apply -auto-approve

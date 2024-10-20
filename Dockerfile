@@ -1,4 +1,4 @@
-FROM python:3.9-slim
+FROM python:3.10-slim
 
 WORKDIR /app
 
@@ -7,4 +7,4 @@ RUN pip install -r requirements.txt
 
 COPY . .
 
-CMD ["python", "main.py", "--base-api-url", "http://127", "--client-id", "test", "--client-secret", "test"]
+CMD ["python", "main.py"]
