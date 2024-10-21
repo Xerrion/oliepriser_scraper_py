@@ -91,14 +91,17 @@ jobs:
 
       # Terraform Init
       - name: Terraform Init
+        working-directory: terraform-deployment
         run: terraform init
 
       # Terraform Plan
       - name: Terraform Plan
+        working-directory: terraform-deployment
         run: terraform plan
 
       # Terraform Apply
       - name: Terraform Apply
+        working-directory: terraform-deployment
         env:
           TF_VAR_docker_image_name: ${{ secrets.DOCKER_IMAGE_NAME }}
           TF_VAR_base_api_url: ${{ secrets.BASE_API_URL }}
