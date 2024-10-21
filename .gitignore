@@ -2,3 +2,4 @@
 terraform-deployment/.terraform
 terraform-deployment/.terraform.lock.hcl
 __pycache__/
+.idea/
