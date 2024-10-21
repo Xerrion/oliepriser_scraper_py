@@ -49,7 +49,7 @@ resource "aws_instance" "scraper_instance" {
 # Define the key pair to SSH into the instance
 resource "aws_key_pair" "scraper_key_pair" {
   key_name   = "scraper-key"
-  public_key = file(".ssh/id_ed25519.pub")
+  public_key = file("../.ssh/id_ed25519.pub")
 }
 
 output "instance_ip" {
