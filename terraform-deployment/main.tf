@@ -2,6 +2,16 @@ provider "aws" {
   region = "eu-north-1" # Stockholm region
 }
 
+data "aws_ami" "amazon_linux" {
+  most_recent = true
+  owners      = ["amazon"]
+
+  filter {
+    name   = "name"
+    values = ["amzn2-ami-hvm-*-x86_64-gp2"]
+  }
+}
+
 # Define a security group to allow SSH access
 resource "aws_security_group" "allow_ssh" {
   name        = "allow_ssh"
@@ -24,7 +34,7 @@ resource "aws_security_group" "allow_ssh" {
 
 # Create an EC2 instance to run the scraper
 resource "aws_instance" "scraper_instance" {
-  ami           = "ami-02db68a01488594c5" # Amazon Linux 2023 AMI
+  ami           = data.aws_ami.amazon_linux.id
   instance_type = "t2.micro"
   key_name      = aws_key_pair.scraper_key_pair.key_name
   security_groups = [aws_security_group.allow_ssh.name]
