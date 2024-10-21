@@ -1,0 +1,22 @@
+[project]
+name = "oliepriser_scraper_py"
+description = "Scrapes oil prices from the internet and sends them through the API for aggregation"
+authors = [{name = "Lasse Skovgaard Nielsen", email = "lasse@xerrion.dk"}]
+version = "0.1.0"
+requires-python = ">=3.10"
+
+[project.urls]
+Repository = "https://github.com/Xerrion/oliepriser_scraper_py"
+
+[tool.black]
+line-length = 120
+target-version = ["py310"]
+
+[tool.ruff]
+line-length = 120
+
+[format]
+quote-style = "double"
+indent-style = "space"
+skip-magic-trailing-comma = false
+line-ending = "auto"

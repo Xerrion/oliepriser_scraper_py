@@ -27,7 +27,7 @@ resource "aws_instance" "scraper_instance" {
   ami           = "ami-02db68a01488594c5" # Amazon Linux 2023 AMI
   instance_type = "t2.micro"
   key_name      = aws_key_pair.scraper_key_pair.key_name
-  security_groups = [aws_security_group.allow_ssh_http.name]
+  security_groups = [aws_security_group.allow_ssh.name]
 
   tags = {
     Name = "scraper-instance"
@@ -40,7 +40,9 @@ resource "aws_instance" "scraper_instance" {
               sudo amazon-linux-extras install docker
               sudo service docker start
               sudo usermod -a -G docker ec2-user
-              sudo docker run -d ${var.docker_image_name}
+              sudo docker run -d ${var.docker_image_name} -e "BASE_API_URL=${var.base_api_url}" \
+                                                          -e "CLIENT_ID=${var.client_id}" \
+                                                          -e "CLIENT_SECRET=${var.client_secret}"
               EOF
 }
 

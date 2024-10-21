@@ -1,4 +1,9 @@
 aiohttp
+aiodns
+Brotli
 beautifulsoup4
 python-dotenv
 pytest
+pytest-asyncio
+ruff
+ruff-lsp

@@ -1,12 +1,12 @@
 name: Python Oile Priser Scraper CI/CD
 
 on:
-  push:
+  push:                             # Run workflow on any push
     branches:
-      - main
-  pull_request:
+      - '**'                        # Matches all branches
+  pull_request:                     # Run on any PR to any branch
     branches:
-      - main
+      - '**'
 
 jobs:
   # Define job for running tests
@@ -15,57 +15,69 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       - name: Set up Python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v5
         with:
           python-version: '3.10'
 
+      # Cache dependencies for faster builds
+      - name: Cache pip
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
       - name: Install dependencies
         run: |
-          python -m venv venv
-          source venv/bin/activate
+          python -m venv .venv
+          source .venv/bin/activate
           pip install -r requirements.txt
 
       - name: Run tests
         run: |
-          source venv/bin/activate
+          source .venv/bin/activate
           pytest
 
   # Build Docker image job
   build:
+    if: github.ref == 'refs/heads/main'  # Only run on pushes to the main branch
     runs-on: ubuntu-latest
+    needs:
+      - test
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
+        uses: docker/setup-buildx-action@v3
 
       - name: Login to Docker Hub
-        uses: docker/login-action@v2
+        uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
       - name: Build and push Docker image
         run: |
-          docker build -t ${{ secrets.DOCKER_USERNAME }}/scraper-app:latest .
-          docker push ${{ secrets.DOCKER_USERNAME }}/scraper-app:latest
+          docker buildx build --platform linux/amd64,linux/arm64 -t ${{ secrets.DOCKER_USERNAME }}/scraper-app:latest --push .
 
   # Deploy job with terraform on AWS
   deploy:
     runs-on: ubuntu-latest
-
+    needs: build
+    if: github.ref == 'refs/heads/main'  # Only run on pushes to the main branch
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       # Set up AWS credentials for Terraform deployment
       - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v1
+        uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -87,4 +99,9 @@ jobs:
 
       # Terraform Apply
       - name: Terraform Apply
+        env:
+          TF_VAR_docker_image_name: ${{ secrets.DOCKER_IMAGE_NAME }}
+          TF_VAR_base_api_url: ${{ secrets.BASE_API_URL }}
+          TF_VAR_client_id: ${{ secrets.CLIENT_ID }}
+          TF_VAR_client_secret: ${{ secrets.CLIENT_SECRET }}
         run: terraform apply -auto-approve
